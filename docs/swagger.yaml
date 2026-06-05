@@ -1,0 +1,276 @@
+basePath: /api/v1
+definitions:
+  subscription-service_internal_model.CreateSubscriptionRequest:
+    properties:
+      end_date:
+        type: string
+      price:
+        minimum: 1
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    required:
+    - price
+    - service_name
+    - start_date
+    - user_id
+    type: object
+  subscription-service_internal_model.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  subscription-service_internal_model.ListSubscriptionsResponse:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      subscriptions:
+        items:
+          $ref: '#/definitions/subscription-service_internal_model.Subscription'
+        type: array
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  subscription-service_internal_model.Subscription:
+    properties:
+      created_at:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: integer
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  subscription-service_internal_model.TotalCostResponse:
+    properties:
+      total_cost:
+        type: integer
+    type: object
+  subscription-service_internal_model.UpdateSubscriptionRequest:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Service for managing user subscriptions
+  title: Subscription Service API
+  version: "1.0"
+paths:
+  /subscriptions:
+    get:
+      description: Возвращает список подписок с возможностью фильтрации
+      parameters:
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: string
+      - description: Filter by service name
+        in: query
+        name: service_name
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ListSubscriptionsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+      summary: List subscriptions
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Создает новую подписку пользователя
+      parameters:
+      - description: Subscription data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/subscription-service_internal_model.CreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.Subscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+      summary: Create subscription
+      tags:
+      - subscriptions
+  /subscriptions/{id}:
+    delete:
+      description: Удаляет подписку по ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+      summary: Delete subscription
+      tags:
+      - subscriptions
+    get:
+      description: Возвращает подписку по её ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.Subscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+      summary: Get subscription by ID
+      tags:
+      - subscriptions
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные существующей подписки
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/subscription-service_internal_model.UpdateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.Subscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+      summary: Update subscription
+      tags:
+      - subscriptions
+  /total-cost:
+    get:
+      description: Calculate total cost of active subscriptions for a user within
+        a date range
+      parameters:
+      - description: User ID (UUID)
+        in: query
+        name: user_id
+        required: true
+        type: string
+      - description: Filter by service name
+        in: query
+        name: service_name
+        type: string
+      - description: Start date (MM-YYYY)
+        in: query
+        name: period_from
+        required: true
+        type: string
+      - description: End date (MM-YYYY)
+        in: query
+        name: period_to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.TotalCostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/subscription-service_internal_model.ErrorResponse'
+      summary: Calculate total cost
+      tags:
+      - subscriptions
+swagger: "2.0"
